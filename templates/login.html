@@ -2,15 +2,16 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Register</title>
+    <title>Log in</title>
 </head>
 <body>
-    <h1>Register</h1>
-    <form method="post" action="/register">
+    <h1>Log in</h1>
+    {{if .LoggedIn}}<p>You are logged in.</p>{{end}}
+    <form method="post" action="/login">
         <label>Username <input name="username" required></label><br>
         <label>Password <input name="password" type="password" required></label><br>
-        <button type="submit">Register</button>
+        <button type="submit">Log in</button>
     </form>
-    <p><a href="/login">Log in</a></p>
+    <p><a href="/register">Register</a></p>
 </body>
 </html>

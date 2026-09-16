@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Feed</title>
+</head>
+<body>
+    <h1>Feed</h1>
+    {{if .LoggedIn}}
+    <form method="post" action="/posts">
+        <textarea name="body" required></textarea><br>
+        <button type="submit">Post</button>
+    </form>
+    {{else}}
+    <p><a href="/login">Log in</a> to create a post.</p>
+    {{end}}
+
+    {{range .Posts}}
+    <article>
+        <h2>{{.Username}}</h2>
+        <p>{{.Body}}</p>
+    </article>
+    {{else}}
+    <p>No posts yet.</p>
+    {{end}}
+</body>
+</html>

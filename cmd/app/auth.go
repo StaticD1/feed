@@ -17,12 +17,7 @@ func (app *application) loginPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := struct {
-		LoggedIn bool
-	}{
-		LoggedIn: r.URL.Query().Get("logged_in") == "1",
-	}
-	if err := tmpl.Execute(w, data); err != nil {
+	if err := tmpl.Execute(w, nil); err != nil {
 		http.Error(w, "could not render page", http.StatusInternalServerError)
 	}
 }
@@ -73,7 +68,7 @@ func (app *application) login(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
 	})
-	http.Redirect(w, r, "/login?logged_in=1", http.StatusSeeOther)
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func (app *application) getCurrentUser(r *http.Request) (int64, bool) {

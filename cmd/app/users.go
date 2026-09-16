@@ -26,12 +26,7 @@ func (app *application) registerPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := struct {
-		Registered bool
-	}{
-		Registered: r.URL.Query().Get("registered") == "1",
-	}
-	if err := tmpl.Execute(w, data); err != nil {
+	if err := tmpl.Execute(w, nil); err != nil {
 		http.Error(w, "could not render page", http.StatusInternalServerError)
 	}
 }
@@ -59,5 +54,5 @@ func (app *application) register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, "/register?registered=1", http.StatusSeeOther)
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }

@@ -4,13 +4,20 @@ A small educational web application written in Go.
 
 ## Run
 
-Create an empty PostgreSQL database, then run the application from the project
-root:
+Start PostgreSQL:
 
 ```sh
-export DATABASE_URL='postgres://postgres:postgres@localhost:5432/feed?sslmode=disable'
-go run ./cmd/app
+docker compose up -d postgres
 ```
 
-The server listens on <http://localhost:8080>. Database tables are created when
-the application starts.
+Run the application:
+
+```sh
+DATABASE_URL='postgres://feed:feed@localhost:5432/feed?sslmode=disable' go run ./cmd/app
+```
+
+Stop PostgreSQL:
+
+```sh
+docker compose down
+```

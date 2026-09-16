@@ -34,6 +34,9 @@ func main() {
 	if err := createUsersTable(db); err != nil {
 		log.Fatal(err)
 	}
+	if err := createPostsTable(db); err != nil {
+		log.Fatal(err)
+	}
 
 	app := &application{
 		db:       db,
@@ -44,6 +47,8 @@ func main() {
 	mux.HandleFunc("POST /register", app.register)
 	mux.HandleFunc("GET /login", app.loginPage)
 	mux.HandleFunc("POST /login", app.login)
+	mux.HandleFunc("GET /", app.feedPage)
+	mux.HandleFunc("POST /posts", app.createPost)
 
 	log.Println("server started on http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", mux))

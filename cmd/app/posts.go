@@ -7,8 +7,9 @@ import (
 )
 
 type post struct {
-	Username string
-	Body     string
+	Username  string
+	Body      string
+	CreatedAt sql.NullTime
 }
 
 func createPostsTable(db *sql.DB) error {
@@ -17,14 +18,17 @@ func createPostsTable(db *sql.DB) error {
 			id BIGSERIAL PRIMARY KEY,
 			user_id BIGINT NOT NULL REFERENCES users(id),
 			body TEXT NOT NULL
-		)
+		);
+		-- Keep old posts without a date: their creation time is unknown.
+		ALTER TABLE posts ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ;
+		ALTER TABLE posts ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP;
 	`)
 	return err
 }
 
 func (app *application) feedPage(w http.ResponseWriter, r *http.Request) {
 	rows, err := app.db.Query(`
-		SELECT users.username, posts.body
+		SELECT users.username, posts.body, posts.created_at
 		FROM posts
 		JOIN users ON users.id = posts.user_id
 		ORDER BY posts.id DESC
@@ -38,7 +42,7 @@ func (app *application) feedPage(w http.ResponseWriter, r *http.Request) {
 	var posts []post
 	for rows.Next() {
 		var post post
-		if err := rows.Scan(&post.Username, &post.Body); err != nil {
+		if err := rows.Scan(&post.Username, &post.Body, &post.CreatedAt); err != nil {
 			http.Error(w, "could not load posts", http.StatusInternalServerError)
 			return
 		}
@@ -81,7 +85,7 @@ func (app *application) createPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: add a post length limit if the application ever needs it.
+	// TODO: add a post length limit
 	if _, err := app.db.Exec(
 		"INSERT INTO posts (user_id, body) VALUES ($1, $2)",
 		userID,

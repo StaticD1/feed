@@ -18,6 +18,11 @@
     {{range .Posts}}
     <article>
         <h2>{{.Username}}</h2>
+        {{if .CreatedAt.Valid}}
+        <p><time datetime="{{.CreatedAt.Time.UTC.Format "2006-01-02T15:04:05Z07:00"}}">{{.CreatedAt.Time.UTC.Format "Mon, 02.01.2006 15:04 UTC"}}</time></p>
+        {{else}}
+        <p>Creation time unknown</p>
+        {{end}}
         <p>{{.Body}}</p>
     </article>
     {{else}}

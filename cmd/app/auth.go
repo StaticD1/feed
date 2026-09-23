@@ -83,4 +83,4 @@ func (app *application) getCurrentUser(r *http.Request) (int64, bool) {
 	return userID, ok
 }
 
-// TODO: add logout if the application ever needs it.
+// TODO: add logout

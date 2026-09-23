@@ -1,0 +1,12 @@
+{{define "language-switcher"}}
+<form method="post" action="/locale">
+    <input type="hidden" name="return_to" value="{{.ReturnTo}}">
+    <label for="locale">{{.I18n.T "locale.label"}}</label>
+    <select id="locale" name="locale">
+        {{range .I18n.Locales}}
+        <option value="{{.Tag}}" lang="{{.Tag}}"{{if eq .Tag.String $.I18n.Locale}} selected{{end}}>{{.Name}}</option>
+        {{end}}
+    </select>
+    <button type="submit">{{.I18n.T "locale.apply"}}</button>
+</form>
+{{end}}

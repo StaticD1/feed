@@ -1,16 +1,17 @@
 <!doctype html>
-<html lang="en">
+<html lang="{{.I18n.Locale}}">
 <head>
     <meta charset="utf-8">
-    <title>Register</title>
+    <title>{{.I18n.T "auth.register.title"}}</title>
 </head>
 <body>
-    <h1>Register</h1>
+    {{template "language-switcher" .}}
+    <h1>{{.I18n.T "auth.register.title"}}</h1>
     <form method="post" action="/register">
-        <label>Username <input name="username" required></label><br>
-        <label>Password <input name="password" type="password" required></label><br>
-        <button type="submit">Register</button>
+        <label>{{.I18n.T "auth.username"}}<br><input name="username" required></label><br>
+        <label>{{.I18n.T "auth.password"}}<br><input name="password" type="password" required></label><br>
+        <button type="submit">{{.I18n.T "auth.register.submit"}}</button>
     </form>
-    <p><a href="/login">Log in</a></p>
+    <p><a href="/login">{{.I18n.T "auth.login.submit"}}</a></p>
 </body>
 </html>

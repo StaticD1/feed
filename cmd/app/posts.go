@@ -27,6 +27,7 @@ func createPostsTable(db *sql.DB) error {
 }
 
 func (app *application) feedPage(w http.ResponseWriter, r *http.Request) {
+	localizer := requestLocalizer(r)
 	rows, err := app.db.Query(`
 		SELECT users.username, posts.body, posts.created_at
 		FROM posts
@@ -34,7 +35,7 @@ func (app *application) feedPage(w http.ResponseWriter, r *http.Request) {
 		ORDER BY posts.id DESC
 	`)
 	if err != nil {
-		http.Error(w, "could not load posts", http.StatusInternalServerError)
+		http.Error(w, localizer.T("errors.load_posts"), http.StatusInternalServerError)
 		return
 	}
 	defer rows.Close()
@@ -43,45 +44,48 @@ func (app *application) feedPage(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		var post post
 		if err := rows.Scan(&post.Username, &post.Body, &post.CreatedAt); err != nil {
-			http.Error(w, "could not load posts", http.StatusInternalServerError)
+			http.Error(w, localizer.T("errors.load_posts"), http.StatusInternalServerError)
 			return
 		}
 		posts = append(posts, post)
 	}
 	if err := rows.Err(); err != nil {
-		http.Error(w, "could not load posts", http.StatusInternalServerError)
+		http.Error(w, localizer.T("errors.load_posts"), http.StatusInternalServerError)
 		return
 	}
 
 	_, loggedIn := app.getCurrentUser(r)
 	data := struct {
+		pageData
 		LoggedIn bool
 		Posts    []post
 	}{
+		pageData: newPageData(r),
 		LoggedIn: loggedIn,
 		Posts:    posts,
 	}
 
-	tmpl, err := template.ParseFiles("templates/feed.html")
+	tmpl, err := template.ParseFiles("templates/feed.html", "templates/language-switcher.html")
 	if err != nil {
-		http.Error(w, "could not load page", http.StatusInternalServerError)
+		http.Error(w, localizer.T("errors.load_page"), http.StatusInternalServerError)
 		return
 	}
 	if err := tmpl.Execute(w, data); err != nil {
-		http.Error(w, "could not render page", http.StatusInternalServerError)
+		http.Error(w, localizer.T("errors.render_page"), http.StatusInternalServerError)
 	}
 }
 
 func (app *application) createPost(w http.ResponseWriter, r *http.Request) {
+	localizer := requestLocalizer(r)
 	userID, ok := app.getCurrentUser(r)
 	if !ok {
-		http.Error(w, "log in to create a post", http.StatusUnauthorized)
+		http.Error(w, localizer.T("errors.login_required"), http.StatusUnauthorized)
 		return
 	}
 
 	body := r.FormValue("body")
 	if body == "" {
-		http.Error(w, "post cannot be empty", http.StatusBadRequest)
+		http.Error(w, localizer.T("errors.empty_post"), http.StatusBadRequest)
 		return
 	}
 
@@ -91,7 +95,7 @@ func (app *application) createPost(w http.ResponseWriter, r *http.Request) {
 		userID,
 		body,
 	); err != nil {
-		http.Error(w, "could not create post", http.StatusInternalServerError)
+		http.Error(w, localizer.T("errors.create_post"), http.StatusInternalServerError)
 		return
 	}
 

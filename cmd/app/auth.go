@@ -11,22 +11,24 @@ import (
 )
 
 func (app *application) loginPage(w http.ResponseWriter, r *http.Request) {
-	tmpl, err := template.ParseFiles("templates/login.html")
+	data := newPageData(r)
+	tmpl, err := template.ParseFiles("templates/login.html", "templates/language-switcher.html")
 	if err != nil {
-		http.Error(w, "could not load page", http.StatusInternalServerError)
+		http.Error(w, data.I18n.T("errors.load_page"), http.StatusInternalServerError)
 		return
 	}
 
-	if err := tmpl.Execute(w, nil); err != nil {
-		http.Error(w, "could not render page", http.StatusInternalServerError)
+	if err := tmpl.Execute(w, data); err != nil {
+		http.Error(w, data.I18n.T("errors.render_page"), http.StatusInternalServerError)
 	}
 }
 
 func (app *application) login(w http.ResponseWriter, r *http.Request) {
+	localizer := requestLocalizer(r)
 	username := r.FormValue("username")
 	password := r.FormValue("password")
 	if username == "" || password == "" {
-		http.Error(w, "username and password are required", http.StatusBadRequest)
+		http.Error(w, localizer.T("errors.credentials_required"), http.StatusBadRequest)
 		return
 	}
 
@@ -37,22 +39,22 @@ func (app *application) login(w http.ResponseWriter, r *http.Request) {
 		username,
 	).Scan(&userID, &passwordHash)
 	if err == sql.ErrNoRows {
-		http.Error(w, "invalid username or password", http.StatusUnauthorized)
+		http.Error(w, localizer.T("errors.invalid_credentials"), http.StatusUnauthorized)
 		return
 	}
 	if err != nil {
-		http.Error(w, "could not log in", http.StatusInternalServerError)
+		http.Error(w, localizer.T("errors.login"), http.StatusInternalServerError)
 		return
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(password)); err != nil {
-		http.Error(w, "invalid username or password", http.StatusUnauthorized)
+		http.Error(w, localizer.T("errors.invalid_credentials"), http.StatusUnauthorized)
 		return
 	}
 
 	tokenBytes := make([]byte, 32)
 	if _, err := rand.Read(tokenBytes); err != nil {
-		http.Error(w, "could not create session", http.StatusInternalServerError)
+		http.Error(w, localizer.T("errors.create_session"), http.StatusInternalServerError)
 		return
 	}
 	token := hex.EncodeToString(tokenBytes)

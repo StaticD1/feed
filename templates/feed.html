@@ -1,32 +1,34 @@
 <!doctype html>
-<html lang="en">
+<html lang="{{.I18n.Locale}}">
 <head>
     <meta charset="utf-8">
-    <title>Feed</title>
+    <title>{{.I18n.T "feed.title"}}</title>
 </head>
 <body>
-    <h1>Feed</h1>
+    {{template "language-switcher" .}}
+    <h1>{{.I18n.T "feed.title"}}</h1>
     {{if .LoggedIn}}
     <form method="post" action="/posts">
-        <textarea name="body" required></textarea><br>
-        <button type="submit">Post</button>
+        <textarea name="body" aria-label="{{.I18n.T "feed.body"}}" required></textarea><br>
+        <button type="submit">{{.I18n.T "feed.submit"}}</button>
     </form>
     {{else}}
-    <p><a href="/login">Log in</a> to create a post.</p>
+    <p>{{.I18n.T "feed.login_prompt"}}</p>
+    <p><a href="/login">{{.I18n.T "auth.login.submit"}}</a></p>
     {{end}}
 
     {{range .Posts}}
     <article>
         <h2>{{.Username}}</h2>
         {{if .CreatedAt.Valid}}
-        <p><time datetime="{{.CreatedAt.Time.UTC.Format "2006-01-02T15:04:05Z07:00"}}">{{.CreatedAt.Time.UTC.Format "Mon, 02.01.2006 15:04 UTC"}}</time></p>
+        <p><time datetime="{{.CreatedAt.Time.UTC.Format "2006-01-02T15:04:05Z07:00"}}">{{$.I18n.DateTime .CreatedAt.Time $.TimeZone}}</time></p>
         {{else}}
-        <p>Creation time unknown</p>
+        <p>{{$.I18n.T "feed.time_unknown"}}</p>
         {{end}}
         <p>{{.Body}}</p>
     </article>
     {{else}}
-    <p>No posts yet.</p>
+    <p>{{.I18n.T "feed.empty"}}</p>
     {{end}}
 </body>
 </html>

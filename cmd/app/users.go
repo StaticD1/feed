@@ -20,28 +20,30 @@ func createUsersTable(db *sql.DB) error {
 }
 
 func (app *application) registerPage(w http.ResponseWriter, r *http.Request) {
-	tmpl, err := template.ParseFiles("templates/register.html")
+	data := newPageData(r)
+	tmpl, err := template.ParseFiles("templates/register.html", "templates/language-switcher.html")
 	if err != nil {
-		http.Error(w, "could not load page", http.StatusInternalServerError)
+		http.Error(w, data.I18n.T("errors.load_page"), http.StatusInternalServerError)
 		return
 	}
 
-	if err := tmpl.Execute(w, nil); err != nil {
-		http.Error(w, "could not render page", http.StatusInternalServerError)
+	if err := tmpl.Execute(w, data); err != nil {
+		http.Error(w, data.I18n.T("errors.render_page"), http.StatusInternalServerError)
 	}
 }
 
 func (app *application) register(w http.ResponseWriter, r *http.Request) {
+	localizer := requestLocalizer(r)
 	username := r.FormValue("username")
 	password := r.FormValue("password")
 	if username == "" || password == "" {
-		http.Error(w, "username and password are required", http.StatusBadRequest)
+		http.Error(w, localizer.T("errors.credentials_required"), http.StatusBadRequest)
 		return
 	}
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		http.Error(w, "could not create user", http.StatusInternalServerError)
+		http.Error(w, localizer.T("errors.create_user"), http.StatusInternalServerError)
 		return
 	}
 
@@ -50,7 +52,7 @@ func (app *application) register(w http.ResponseWriter, r *http.Request) {
 		username,
 		string(hash),
 	); err != nil {
-		http.Error(w, "could not create user", http.StatusBadRequest)
+		http.Error(w, localizer.T("errors.create_user"), http.StatusBadRequest)
 		return
 	}
 

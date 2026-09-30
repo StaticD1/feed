@@ -1,4 +1,3 @@
-// Package localization connects Feed's translations and regional formatters.
 package localization
 
 import (
@@ -7,10 +6,10 @@ import (
 	"log"
 	"time"
 
-	"github.com/goodsign/monday"
-	"github.com/nicksnyder/go-i18n/v2/i18n"
-	"golang.org/x/text/language"
-	"golang.org/x/text/message"
+	"github.com/goodsign/monday"            //Формат дат и времени
+	"github.com/nicksnyder/go-i18n/v2/i18n" //перевод по ключу
+	"golang.org/x/text/language"            //соотношение языковых тегов
+	"golang.org/x/text/message"             //форматирование чисел
 )
 
 //go:embed locales/*.json
@@ -22,7 +21,6 @@ type Locale struct {
 	DateLocale monday.Locale
 }
 
-// The first locale is the fallback. Treat this list as read-only after startup.
 var supportedLocales = []Locale{
 	{Tag: language.AmericanEnglish, Name: "English", DateLocale: monday.LocaleEnUS},
 	{Tag: language.MustParse("ru-RU"), Name: "Русский", DateLocale: monday.LocaleRuRU},
@@ -34,7 +32,7 @@ type Catalog struct {
 }
 
 func New() (*Catalog, error) {
-	bundle := i18n.NewBundle(supportedLocales[0].Tag)
+	bundle := i18n.NewBundle(supportedLocales[0].Tag) //locale storage
 	tags := make([]language.Tag, 0, len(supportedLocales))
 	for _, locale := range supportedLocales {
 		path := "locales/" + locale.Tag.String() + ".json"
@@ -47,9 +45,8 @@ func New() (*Catalog, error) {
 }
 
 // Lookup accepts a supported locale, including equivalent casing such as en-us.
-// Unlike language negotiation, an explicit choice must name a supported locale.
 func Lookup(value string) (Locale, bool) {
-	tag, err := language.Parse(value)
+	tag, err := language.Parse(value) //ru-Ru in language.Tag type
 	if err != nil {
 		return Locale{}, false
 	}
@@ -67,6 +64,7 @@ type Localizer struct {
 	numbers  *message.Printer
 }
 
+// Select locale: from cookie -> header -> default
 func (c *Catalog) Localizer(cookieValue, acceptLanguage string) *Localizer {
 	locale, ok := Lookup(cookieValue)
 	if !ok {
@@ -75,7 +73,6 @@ func (c *Catalog) Localizer(cookieValue, acceptLanguage string) *Localizer {
 		if err == nil && len(tags) > 0 {
 			_, index, confidence := c.matcher.Match(tags...)
 			if confidence >= language.High {
-				// Use our exact supported tag for both translations and formats.
 				locale = supportedLocales[index]
 			}
 		}
@@ -83,7 +80,7 @@ func (c *Catalog) Localizer(cookieValue, acceptLanguage string) *Localizer {
 	return &Localizer{
 		locale:   locale,
 		messages: i18n.NewLocalizer(c.bundle, locale.Tag.String()),
-		numbers:  message.NewPrinter(locale.Tag),
+		numbers:  message.NewPrinter(locale.Tag), //number formatting
 	}
 }
 
@@ -91,7 +88,7 @@ func (l *Localizer) Locale() string {
 	return l.locale.Tag.String()
 }
 
-// Locales supplies the language selector. Callers must not modify the slice.
+// Locales supplies the language selector.
 func (l *Localizer) Locales() []Locale {
 	return supportedLocales
 }
@@ -106,7 +103,6 @@ func (l *Localizer) T(id string, data ...map[string]any) string {
 	if err != nil {
 		log.Printf("localize %q (%s): %v", id, l.Locale(), err)
 	}
-	// go-i18n can return the fallback translation together with an error.
 	return text
 }
 
@@ -125,7 +121,6 @@ func (l *Localizer) Integer(value int64) string {
 }
 
 // Decimal formats a number with the requested number of fractional digits.
-// Callers provide a nonnegative precision; it is not a user input setting.
 func (l *Localizer) Decimal(value float64, precision int) string {
 	return l.numbers.Sprintf("%.*f", precision, value)
 }
